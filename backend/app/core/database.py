@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, create_engine, Session
 
 from app.core.config import settings
+from app.models import League, Match, Team
 
 
 engine = create_engine(
