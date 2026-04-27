@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 app = FastAPI(
-    title='Placar Pro API',
-    description='API para acompanhamento de resultados de futebol.',
-    version='0.1.0',
+    title=settings.APP_NAME,
+    description=settings.APP_DESCRIPTION,
+    version=settings.APP_VERSION,
 )
 
 
@@ -17,5 +19,7 @@ def root():
 @app.get('/health')
 def health_check():
     return {
-        'status': 'ok'
+        'status': 'ok',
+        'app': settings.APP_NAME,
+        'version': settings.APP_VERSION,
     }
