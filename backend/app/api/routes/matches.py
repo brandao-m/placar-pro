@@ -1,6 +1,7 @@
+from datetime import date, datetime, time, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 
 from app.core.database import get_session
@@ -23,8 +24,28 @@ router = APIRouter(
 @router.get("/", response_model=list[MatchListRead])
 def list_matches(
     session: Annotated[Session, Depends(get_session)],
+    match_date: date | None = Query(default=None, alias="date"),
 ):
     statement = select(Match)
+
+    if match_date:
+        start_of_day = datetime.combine(
+            match_date,
+            time.min,
+            tzinfo=timezone.utc,
+        )
+
+        end_of_day = datetime.combine(
+            match_date,
+            time.max,
+            tzinfo=timezone.utc,
+        )
+
+        statement = statement.where(
+            Match.match_date >= start_of_day,
+            Match.match_date <= end_of_day,
+        )
+
     matches = session.exec(statement).all()
 
     response = []
