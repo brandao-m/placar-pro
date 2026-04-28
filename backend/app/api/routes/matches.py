@@ -4,8 +4,14 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 
 from app.core.database import get_session
+from app.models.league import League
 from app.models.match import Match
-from app.schemas.match import MatchRead
+from app.models.team import Team
+from app.schemas.match import (
+    MatchLeagueRead,
+    MatchListRead,
+    MatchTeamRead,
+)
 
 
 router = APIRouter(
@@ -14,11 +20,68 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[MatchRead])
+@router.get("/", response_model=list[MatchListRead])
 def list_matches(
     session: Annotated[Session, Depends(get_session)],
 ):
     statement = select(Match)
     matches = session.exec(statement).all()
 
-    return matches
+    response = []
+
+    for match in matches:
+        league = None
+        home_team = None
+        away_team = None
+
+        if match.league_id:
+            league_model = session.get(League, match.league_id)
+
+            if league_model:
+                league = MatchLeagueRead(
+                    id=league_model.id,
+                    name=league_model.name,
+                    country=league_model.country,
+                    logo_url=league_model.logo_url,
+                    season=league_model.season,
+                )
+
+        if match.home_team_id:
+            home_team_model = session.get(Team, match.home_team_id)
+
+            if home_team_model:
+                home_team = MatchTeamRead(
+                    id=home_team_model.id,
+                    name=home_team_model.name,
+                    logo_url=home_team_model.logo_url,
+                )
+
+        if match.away_team_id:
+            away_team_model = session.get(Team, match.away_team_id)
+
+            if away_team_model:
+                away_team = MatchTeamRead(
+                    id=away_team_model.id,
+                    name=away_team_model.name,
+                    logo_url=away_team_model.logo_url,
+                )
+
+        response.append(
+            MatchListRead(
+                id=match.id,
+                api_fixture_id=match.api_fixture_id,
+                match_date=match.match_date,
+                status_long=match.status_long,
+                status_short=match.status_short,
+                elapsed=match.elapsed,
+                home_goals=match.home_goals,
+                away_goals=match.away_goals,
+                venue_name=match.venue_name,
+                venue_city=match.venue_city,
+                league=league,
+                home_team=home_team,
+                away_team=away_team,
+            )
+        )
+
+    return response
