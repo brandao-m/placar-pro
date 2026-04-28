@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.routes import dev, leagues, matches, teams
+from app.api.routes import dev, external, leagues, matches, teams
 from app.core.config import settings
 from app.core.database import create_db_and_tables
 
@@ -25,6 +25,8 @@ app.include_router(leagues.router, prefix="/api")
 app.include_router(teams.router, prefix="/api")
 app.include_router(matches.router, prefix="/api")
 app.include_router(dev.router, prefix="/api")
+app.include_router(external.router, prefix="/api")
+
 
 
 @app.get("/")
