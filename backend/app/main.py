@@ -2,8 +2,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.routes import leagues, matches, teams
 from app.core.config import settings
 from app.core.database import create_db_and_tables
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,17 +21,22 @@ app = FastAPI(
 )
 
 
-@app.get('/')
+app.include_router(leagues.router, prefix="/api")
+app.include_router(teams.router, prefix="/api")
+app.include_router(matches.router, prefix="/api")
+
+
+@app.get("/")
 def root():
     return {
-        'message': 'API do Placar Pro esta funcionando.'
+        "message": "API do Placar Pro está funcionando."
     }
 
 
-@app.get('/health')
+@app.get("/health")
 def health_check():
     return {
-        'status': 'ok',
-        'app': settings.APP_NAME,
-        'version': settings.APP_VERSION,
+        "status": "ok",
+        "app": settings.APP_NAME,
+        "version": settings.APP_VERSION,
     }
